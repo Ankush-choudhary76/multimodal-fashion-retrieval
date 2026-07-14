@@ -19,57 +19,54 @@ This system retrieves fashion images based on natural language queries using a h
 ## Folder Structure
 
 *   `configs/`: Configuration files (`config.yaml`).
-*   `dataset/`: Directory to store the raw fashion images.
+*   `dataset/`: Directory storing the raw fashion images (1,000 images included for testing).
 *   `evaluation/`: Scripts to evaluate the system on predefined queries.
 *   `indexer/`: Modules to load images, generate captions, extract metadata, create embeddings, and populate the database.
-*   `models/`: Directory for any locally saved models (if applicable).
-*   `notebooks/`: Directory for Jupyter notebooks.
 *   `retriever/`: Modules to parse queries, search the database, and perform hybrid reranking.
 *   `utils/`: Helper utilities (logging, config parsing).
-*   `vectordb/`: Persistent storage for ChromaDB.
+*   `vectordb/`: Persistent storage for ChromaDB (Pre-indexed database included).
 
 ## Installation
 
 1.  Ensure you have Python 3.8+ installed.
-2.  Install the required dependencies:
+2.  Clone the repository and install the required dependencies:
     ```bash
+    git clone https://github.com/Ankush-choudhary76/multimodal-fashion-retrieval.git
+    cd multimodal-fashion-retrieval
     pip install -r requirements.txt
     ```
 
-## Dataset Preparation
+## Usage (Plug-and-Play)
 
-This system is designed to work with the Fashionpedia dataset or any directory of images.
+We have included a pre-indexed vector database (`vectordb/`) and 1,000 test images (`dataset/images/`) directly in the repository. **You do not need to run the indexer yourself.** You can immediately test the retrieval!
 
-For testing purposes, place a subset of images (e.g., 500-1000) inside the `dataset/images/` directory.
+### 1. Interactive Web UI (Recommended)
 
-## Usage
-
-### 1. Indexing the Dataset
-
-Run the indexer to process images, generate captions, extract metadata, and store embeddings in ChromaDB:
+To launch the beautiful, interactive Streamlit web application:
 ```bash
-python indexer/index_dataset.py
+streamlit run app.py
 ```
+This UI allows you to test queries instantly and adjust the hybrid scoring weights via sliders!
 
-### 2. Searching
-
-You can test individual queries using the main retriever script:
-```bash
-python retriever/main.py "A person in a bright yellow raincoat"
-```
-
-### 3. Evaluation
+### 2. Command-Line Evaluation
 
 Run the evaluation script to test the system against the predefined assignment queries:
 ```bash
 python evaluation/eval.py
 ```
 
-### 4. Visualization
+### 3. Command-Line Visualization
 
-To visually verify that the retrieved images match the query, use the visualization script. This will open a window showing the query and the top 3 image results side-by-side:
+To visually verify that the retrieved images match a specific custom query:
 ```bash
 python evaluation/visualize.py "A person in a bright yellow raincoat"
+```
+
+### 4. Indexing (Optional)
+
+If you wish to add new images or rebuild the database from scratch, place your images in `dataset/images/` and run:
+```bash
+python indexer/index_dataset.py
 ```
 
 ## Configuration
@@ -84,4 +81,3 @@ You can customize the system behavior by editing `configs/config.yaml`:
 ## Future Improvements
 - Replace rule-based attribute extraction with a lightweight Named Entity Recognition (NER) model or an LLM for more robust metadata extraction.
 - Implement a more complex reranking model (e.g., Cross-Encoder) instead of a linear weighted sum.
-- Add a web interface (e.g., using Streamlit or Gradio) for interactive testing.
