@@ -63,22 +63,6 @@ def main():
         w_scene = st.slider("Scene Match", 0.0, 1.0, 0.1)
         
         st.markdown("---")
-        st.markdown("### 💡 Try these queries:")
-        example_queries = [
-            "A person in a bright yellow raincoat.",
-            "Professional business attire inside a modern office.",
-            "Someone wearing a blue shirt sitting on a park bench.",
-            "Casual weekend outfit for a city walk.",
-            "A red tie and a white shirt in a formal setting."
-        ]
-        
-        # We use session state to populate the search bar from buttons
-        if 'search_query' not in st.session_state:
-            st.session_state.search_query = ""
-            
-        for q in example_queries:
-            if st.button(q):
-                st.session_state.search_query = q
 
     # --- MAIN CONTENT ---
     st.markdown('<p class="main-header">Fashion Context Retrieval Engine</p>', unsafe_allow_html=True)
@@ -97,7 +81,7 @@ def main():
     }
 
     # Search Bar
-    query = st.text_input("🔍 Search Database:", value=st.session_state.search_query, placeholder="Describe an outfit, color, or scene...")
+    query = st.text_input("🔍 Search Database:", placeholder="Describe an outfit, color, or scene...")
     
     col1, col2 = st.columns([1, 5])
     with col1:
