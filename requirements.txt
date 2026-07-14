@@ -10,3 +10,4 @@ matplotlib
 PyYAML
 requests
 tqdm
+streamlit
