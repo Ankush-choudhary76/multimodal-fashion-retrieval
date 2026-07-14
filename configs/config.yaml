@@ -1,0 +1,21 @@
+# Configuration for Fashion Retrieval System
+
+project:
+  name: "multimodal-fashion-retrieval"
+  dataset_path: "dataset/images"
+  vector_db_path: "vectordb/chroma_data"
+  max_index_images: 1000 # Allow indexing only a subset (500–1000 images) for testing.
+
+models:
+  blip_model: "Salesforce/blip-image-captioning-base"
+  clip_model: "ViT-B-32"
+  clip_pretrained: "laion2b_s34b_b79k"
+  device: "cpu" # Set to "cuda" or "mps" if available
+
+retrieval:
+  top_k: 5
+  weights:
+    clip: 0.5
+    clothing: 0.2
+    color: 0.2
+    scene: 0.1
