@@ -38,7 +38,8 @@ If a user searches for *"A red tie and a white shirt in a formal setting"*, vani
 
 ## 3. Codebase (GitHub) Link
 **Repository:** [https://github.com/Ankush-choudhary76/multimodal-fashion-retrieval](https://github.com/Ankush-choudhary76/multimodal-fashion-retrieval)
-*(Note: Code is modularly separated into `indexer` and `retriever` pipelines, and the test dataset/ChromaDB are included for plug-and-play testing).*
+
+*(Note: The codebase is modularly separated into `indexer` and `retriever` pipelines. We have also included the test dataset and pre-indexed ChromaDB for instant plug-and-play testing. Additionally, a **Streamlit Web UI (`app.py`)** has been provided for interactive testing of the ML logic.)*
 
 ---
 
