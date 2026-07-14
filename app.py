@@ -7,8 +7,37 @@ from PIL import Image
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from retriever.main import FashionRetriever
 
-# Set page config
-st.set_page_config(page_title="Fashion Retrieval Engine", layout="wide")
+# Set page config for a wider, cleaner layout
+st.set_page_config(page_title="Glance ML | Fashion Retrieval", page_icon="👗", layout="wide")
+
+# Custom CSS for better aesthetics
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 3rem;
+        font-weight: 700;
+        background: -webkit-linear-gradient(45deg, #FF6B6B, #4ECDC4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0px;
+    }
+    .sub-header {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 30px;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 15px;
+        background-color: #f8f9fa;
+        margin-bottom: 20px;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #f4f6f9;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 @st.cache_resource
 def load_retriever():
@@ -16,62 +45,94 @@ def load_retriever():
     return FashionRetriever()
 
 def main():
-    st.title("👗 Multimodal Fashion & Context Retrieval")
-    st.markdown("Search for fashion images using natural language queries. The system uses a **Hybrid Retrieval** approach combining OpenCLIP semantics with explicit BLIP-extracted metadata.")
+    # --- SIDEBAR ---
+    with st.sidebar:
+        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/1200px-GitHub_Invertocat_Logo.svg.png", width=50)
+        st.markdown("### Glance ML Internship")
+        st.markdown("**Multimodal Fashion Retrieval**")
+        st.markdown("---")
+        
+        st.markdown("### ⚙️ Engine Settings")
+        top_k = st.slider("Results to return (Top-K):", 1, 10, 3)
+        
+        st.markdown("#### Hybrid Scoring Weights")
+        st.caption("Tune semantic vs. attribute matching.")
+        w_clip = st.slider("CLIP Semantic Sim", 0.0, 1.0, 0.5)
+        w_cloth = st.slider("Clothing Match", 0.0, 1.0, 0.2)
+        w_color = st.slider("Color Match", 0.0, 1.0, 0.2)
+        w_scene = st.slider("Scene Match", 0.0, 1.0, 0.1)
+        
+        st.markdown("---")
+        st.markdown("### 💡 Try these queries:")
+        example_queries = [
+            "A person in a bright yellow raincoat.",
+            "Professional business attire inside a modern office.",
+            "Someone wearing a blue shirt sitting on a park bench.",
+            "Casual weekend outfit for a city walk.",
+            "A red tie and a white shirt in a formal setting."
+        ]
+        
+        # We use session state to populate the search bar from buttons
+        if 'search_query' not in st.session_state:
+            st.session_state.search_query = ""
+            
+        for q in example_queries:
+            if st.button(q):
+                st.session_state.search_query = q
+
+    # --- MAIN CONTENT ---
+    st.markdown('<p class="main-header">Fashion Context Retrieval Engine</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Semantic search powered by OpenCLIP, BLIP, and ChromaDB.</p>', unsafe_allow_html=True)
 
     # Load Model
-    with st.spinner("Loading ML Models and Vector Database..."):
+    with st.spinner("Initializing Models and Vector Database (ChromaDB)..."):
         retriever = load_retriever()
+        
+    # Update retriever weights dynamically from sidebar
+    retriever.reranker.weights = {
+        "clip": w_clip,
+        "clothing": w_cloth,
+        "color": w_color,
+        "scene": w_scene
+    }
 
     # Search Bar
-    query = st.text_input("Enter your fashion query:", placeholder="e.g., A person in a bright yellow raincoat.")
+    query = st.text_input("🔍 Search Database:", value=st.session_state.search_query, placeholder="Describe an outfit, color, or scene...")
     
-    # Sliders for Hybrid Weights (Optional interactivity for bonus points)
-    with st.expander("⚙️ Adjust Hybrid Scoring Weights"):
-        st.markdown("Tune how much weight is given to the neural vector search vs explicit keyword matching.")
-        col1, col2, col3, col4 = st.columns(4)
-        w_clip = col1.slider("CLIP Semantic Sim", 0.0, 1.0, 0.5)
-        w_cloth = col2.slider("Clothing Match", 0.0, 1.0, 0.2)
-        w_color = col3.slider("Color Match", 0.0, 1.0, 0.2)
-        w_scene = col4.slider("Scene Match", 0.0, 1.0, 0.1)
-        
-        # Update retriever weights dynamically
-        retriever.reranker.weights = {
-            "clip": w_clip,
-            "clothing": w_cloth,
-            "color": w_color,
-            "scene": w_scene
-        }
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        search_btn = st.button("Search Images", type="primary", use_container_width=True)
 
-    top_k = st.slider("Number of results to return (Top-K):", 1, 10, 3)
-
-    if st.button("Search 🔍") and query:
+    if search_btn and query:
         with st.spinner(f"Searching database for '{query}'..."):
             results = retriever.retrieve(query, top_k=top_k)
             
             if not results:
-                st.warning("No results found.")
+                st.warning("No results found. Try a different query.")
             else:
-                st.success(f"Top {len(results)} results retrieved!")
+                st.markdown(f"### ✨ Top {len(results)} Results for: *{query}*")
                 
                 # Display results in columns
                 cols = st.columns(len(results))
                 for idx, (col, res) in enumerate(zip(cols, results)):
                     with col:
+                        st.markdown(f"<div class='card'>", unsafe_allow_html=True)
                         try:
                             img = Image.open(res['uri'])
                             st.image(img, use_container_width=True)
                             
-                            st.markdown(f"**Rank {idx + 1}**")
-                            st.metric(label="Hybrid Score", value=f"{res['score']:.3f}")
+                            st.markdown(f"**Rank {idx + 1}** | Score: `{res['score']:.3f}`")
                             
                             meta = res['metadata']
-                            st.caption(f"**Extracted Cloth:** {meta.get('clothing', 'N/A')}")
-                            st.caption(f"**Extracted Color:** {meta.get('colors', 'N/A')}")
-                            with st.expander("View BLIP Caption"):
-                                st.write(meta.get('caption', 'N/A'))
+                            st.markdown(f"**👕 Cloth:** {meta.get('clothing', '-')}")
+                            st.markdown(f"**🎨 Color:** {meta.get('colors', '-')}")
+                            st.markdown(f"**📍 Scene:** {meta.get('scenes', '-')}")
+                            
+                            with st.expander("Show BLIP Caption"):
+                                st.caption(meta.get('caption', 'N/A'))
                         except Exception as e:
                             st.error(f"Error loading image: {res['uri']}")
+                        st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
