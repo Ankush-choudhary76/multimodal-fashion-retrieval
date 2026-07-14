@@ -8,8 +8,6 @@ env.bak/
 venv.bak/
 
 # Datasets and Databases
-dataset/
-vectordb/
 
 # Python caches
 __pycache__/
